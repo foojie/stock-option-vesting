@@ -9,4 +9,8 @@ public class Perf extends Transaction {
         this.init(fields);
         this.multiplier = Double.valueOf(fields[3]);
     }
+
+    public double getMultiplier() {
+        return this.multiplier;
+    }
 }

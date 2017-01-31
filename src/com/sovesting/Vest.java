@@ -12,6 +12,18 @@ public class Vest extends Transaction {
         this.grantPrice = Double.valueOf(fields[4]); // TODO: parse BigDecimal into Price wrapper
     }
 
+    public int getUnits() {
+        return this.units;
+    }
+
+    public void setUnits(int units) {
+        this.units = units;
+    }
+
+    public double getGrantPrice() {
+        return this.grantPrice;
+    }
+
     @Override
     public String toString() {
         return super.toString() + ", units=" + units + ", grantPrice=" + grantPrice + "\n";
