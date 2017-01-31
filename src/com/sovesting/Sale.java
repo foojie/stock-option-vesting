@@ -11,4 +11,12 @@ public class Sale extends Transaction {
         this.units = Integer.valueOf(fields[3]);
         this.marketPrice = Double.valueOf(fields[4]); // TODO: parse BigDecimal into Price wrapper
     }
+
+    public int getUnits() {
+        return this.units;
+    }
+
+    public double getMarketPrice() {
+        return this.marketPrice;
+    }
 }

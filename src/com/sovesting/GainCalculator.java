@@ -25,6 +25,7 @@ public class GainCalculator {
             // 1st pass: apply PERF multipliers and SALE deductions to VEST units
             // iterate all employee transactions and process them in order
             // calculate total sales gains
+            double totalSales = 0;
             for (Transaction transaction : employeeTransactions) {
 
                 if(transaction.type.equals("PERF")) {
@@ -33,10 +34,10 @@ public class GainCalculator {
                     this.applyPerfMultiplier(perf, this.dataHandler.getEndDate(), vests);
 
                 } else if(transaction.type.equals("SALE")) {
-                    // TODO
-                    // modify vest units: applies to one or more vests
-                    // calculate single sale gain
-                    // add to totalSales
+                    Sale sale = (Sale) transaction;
+                    ArrayList<Vest> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, sale.date);
+                    double salesGain = this.computeSale(sale, this.dataHandler.getEndDate(), vests);
+                    totalSales += salesGain;
                 }
             }
 
@@ -53,6 +54,7 @@ public class GainCalculator {
 
             // set Employee gain values for output later
             employee.setTotalGains(totalGains);
+            employee.setTotalSales(totalSales);
         }
     }
 
@@ -70,5 +72,53 @@ public class GainCalculator {
             int unitsInt = (int) unitsDbl;
             vest.setUnits(unitsInt);
         }
+    }
+
+    // algorithm to modify VEST units and calculate sales gain
+    // returns the gain from the given SALE
+    public double computeSale(Sale sale, Date endDate, ArrayList<Vest> vests) {
+
+        if(sale.date.after(endDate)) {
+            return 0;
+        }
+
+        double subtotalSalesGain = 0;
+        int remainingUnits = 0;
+        int previousRemainingUnits = sale.getUnits(); // initialize previous to the sale's units
+
+        for (Vest vest: vests) {
+
+            // does the vest have units to sell
+            if(vest.getUnits() <= 0) {
+                continue; // to next vest
+            }
+
+            // example: VEST 600 units - SALE 500 units = 100
+            // example: VEST 100 units - SALE 150 units = -50
+            remainingUnits = vest.getUnits() - previousRemainingUnits; // may yield positive or negative remaining units
+
+            // depending on the sign +/- of the remaining units, use the previous RU or vest's units to calculate the gain
+             int unitMultiplier = remainingUnits > 0 ? previousRemainingUnits : vest.getUnits();
+
+            double salesGain = (sale.getMarketPrice() - vest.getGrantPrice()) * unitMultiplier;
+            subtotalSalesGain += salesGain;
+
+            // update the current vest's units after the SALE deduction
+            if(remainingUnits < 0) {
+                vest.setUnits(0);
+            } else {
+                vest.setUnits(remainingUnits);
+            }
+
+            previousRemainingUnits = Math.abs(remainingUnits); // update for next iteration
+
+            // check if all units have been sold, if so then we are done
+            // otherwise move onto the next VEST to sell the remaining units
+            if(remainingUnits > 0) {
+                break;
+            }
+        }
+
+        return subtotalSalesGain;
     }
 }
