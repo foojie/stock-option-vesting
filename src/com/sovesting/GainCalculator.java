@@ -16,6 +16,8 @@ public class GainCalculator {
     // algorithm to calculate gains for each employee
     public void calculateGains() {
 
+        int salesCount = 0;
+
         for (Map.Entry<String,Employee> entry : this.dataHandler.getEmployees().entrySet()) {
 
             String employeeId = entry.getKey();
@@ -39,6 +41,7 @@ public class GainCalculator {
                     ArrayList<Vest> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, sale.date);
                     BigDecimal salesGain = this.computeSale(sale, this.dataHandler.getEndDate(), vests);
                     totalSales = totalSales.add(salesGain);
+                    salesCount++;
                 }
             }
 
@@ -51,12 +54,17 @@ public class GainCalculator {
                 // formula: gain = (marketPrice - grantPrice) * units
                 BigDecimal price = (this.dataHandler.getMarketPrice().subtract(vest.getGrantPrice()));
                 BigDecimal gain = price.multiply(vest.getUnits());
-                totalGains = totalGains.add(gain);
+
+                // only add positive gains to the total, ignore negative gains
+                if(gain.compareTo(BigDecimal.ZERO) > 0) {
+                    totalGains = totalGains.add(gain);
+                }
             }
 
             // set Employee gain values for output later
             employee.setTotalGains(totalGains);
             employee.setTotalSales(totalSales);
+            employee.setSalesCount(salesCount);
         }
     }
 
@@ -78,6 +86,7 @@ public class GainCalculator {
 
     // algorithm to modify VEST units and calculate sales gain
     // returns the gain from the given SALE
+    // note: return value should be >= 0
     public BigDecimal computeSale(Sale sale, Date endDate, ArrayList<Vest> vests) {
 
         if(sale.date.after(endDate)) {
@@ -106,7 +115,11 @@ public class GainCalculator {
             // formula: sales gain = (sale market price - vest grant price) * unit multiplier
             BigDecimal price = sale.getMarketPrice().subtract(vest.getGrantPrice());
             BigDecimal salesGain = price.multiply(unitMultiplier);
-            subtotalSalesGain = subtotalSalesGain.add(salesGain);
+
+            // only add positive gains, ignore negative gains
+            if(salesGain.compareTo(BigDecimal.ZERO) > 0) {
+                subtotalSalesGain = subtotalSalesGain.add(salesGain);
+            }
 
             // update the current vest's units after the SALE deduction
             if(remainingUnits.compareTo(BigDecimal.ZERO) < 0) {

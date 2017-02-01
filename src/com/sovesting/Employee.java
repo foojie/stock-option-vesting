@@ -8,6 +8,7 @@ public class Employee {
     private String id;
     private BigDecimal totalGains;
     private BigDecimal totalSales;
+    private int salesCount;
 
     public Employee(String id) {
         this.id = id;
@@ -33,14 +34,21 @@ public class Employee {
         this.totalSales = totalSales;
     }
 
-    // TODO: check for negative gains, display 0.00 if negative (need to check for negativies in GainCalculator)
-    // TODO: modify for possible sales output
+    public int getSalesCount() {
+        return this.salesCount;
+    }
+
+    public void setSalesCount(int salesCount) {
+        this.salesCount = salesCount;
+    }
+
     public String render() {
-        return this.id + "," + this.getTotalGains() + "," + this.getTotalSales();
+        String sales = this.salesCount > 0 ? "," + this.getTotalSales() : "";
+        return this.id + "," + this.getTotalGains() + sales;
     }
 
     @Override
     public String toString() {
-        return "Employee{" + this.render() + '}';
+        return "Employee{" + this.id + "," + this.getTotalGains() + "," + this.getTotalSales() + '}';
     }
 }
