@@ -1,6 +1,8 @@
 package com.sovesting;
 
+import java.math.BigDecimal;
+
 public class Price {
 
-    public double price; // TODO: use BigDecimal
+    public BigDecimal value;
 }

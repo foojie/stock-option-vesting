@@ -1,5 +1,6 @@
 package com.sovesting;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class GainCalculator {
             // 1st pass: apply PERF multipliers and SALE deductions to VEST units
             // iterate all employee transactions and process them in order
             // calculate total sales gains
-            double totalSales = 0;
+            BigDecimal totalSales = BigDecimal.ZERO;
             for (Transaction transaction : employeeTransactions) {
 
                 if(transaction.type.equals("PERF")) {
@@ -36,8 +37,8 @@ public class GainCalculator {
                 } else if(transaction.type.equals("SALE")) {
                     Sale sale = (Sale) transaction;
                     ArrayList<Vest> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, sale.date);
-                    double salesGain = this.computeSale(sale, this.dataHandler.getEndDate(), vests);
-                    totalSales += salesGain;
+                    BigDecimal salesGain = this.computeSale(sale, this.dataHandler.getEndDate(), vests);
+                    totalSales = totalSales.add(salesGain);
                 }
             }
 
@@ -45,11 +46,12 @@ public class GainCalculator {
             // iterate vests up to end date
             // note: some vests might have 0 zero units due to sale deductions
             // TODO: consider refactoring this to a function for testing
-            double totalGains = 0;
+            BigDecimal totalGains = BigDecimal.ZERO;
             for (Vest vest : this.dataHandler.getEmployeeVestsToDate(employeeId, this.dataHandler.getEndDate())) {
                 // formula: gain = (marketPrice - grantPrice) * units
-                double gain = (this.dataHandler.getMarketPrice() - vest.getGrantPrice()) * vest.getUnits();
-                totalGains += gain;
+                BigDecimal price = (this.dataHandler.getMarketPrice().subtract(vest.getGrantPrice()));
+                BigDecimal gain = price.multiply(vest.getUnits());
+                totalGains = totalGains.add(gain);
             }
 
             // set Employee gain values for output later
@@ -68,53 +70,56 @@ public class GainCalculator {
         }
 
         for (Vest vest : vests) {
-            double unitsDbl = vest.getUnits() * perf.getMultiplier();
-            int unitsInt = (int) unitsDbl;
-            vest.setUnits(unitsInt);
+            // formula: units = VEST units * PERF multiplier;
+            BigDecimal units = vest.getUnits().multiply(perf.getMultiplier());
+            vest.setUnits(units);
         }
     }
 
     // algorithm to modify VEST units and calculate sales gain
     // returns the gain from the given SALE
-    public double computeSale(Sale sale, Date endDate, ArrayList<Vest> vests) {
+    public BigDecimal computeSale(Sale sale, Date endDate, ArrayList<Vest> vests) {
 
         if(sale.date.after(endDate)) {
-            return 0;
+            return BigDecimal.ZERO;
         }
 
-        double subtotalSalesGain = 0;
-        int remainingUnits = 0;
-        int previousRemainingUnits = sale.getUnits(); // initialize previous to the sale's units
+        BigDecimal subtotalSalesGain = BigDecimal.ZERO;
+        BigDecimal remainingUnits = BigDecimal.ZERO;
+        BigDecimal previousRemainingUnits = sale.getUnits(); // initialize previous to the sale's units
 
         for (Vest vest: vests) {
 
             // does the vest have units to sell
-            if(vest.getUnits() <= 0) {
+            // formula: vest units <= 0
+            if(vest.getUnits().compareTo(BigDecimal.ZERO) < 0 || vest.getUnits().compareTo(BigDecimal.ZERO) == 0) {
                 continue; // to next vest
             }
 
             // example: VEST 600 units - SALE 500 units = 100
             // example: VEST 100 units - SALE 150 units = -50
-            remainingUnits = vest.getUnits() - previousRemainingUnits; // may yield positive or negative remaining units
+            remainingUnits = vest.getUnits().subtract(previousRemainingUnits); // may yield positive or negative remaining units
 
             // depending on the sign +/- of the remaining units, use the previous RU or vest's units to calculate the gain
-             int unitMultiplier = remainingUnits > 0 ? previousRemainingUnits : vest.getUnits();
+            BigDecimal unitMultiplier = remainingUnits.compareTo(BigDecimal.ZERO) > 0 ? previousRemainingUnits : vest.getUnits();
 
-            double salesGain = (sale.getMarketPrice() - vest.getGrantPrice()) * unitMultiplier;
-            subtotalSalesGain += salesGain;
+            // formula: sales gain = (sale market price - vest grant price) * unit multiplier
+            BigDecimal price = sale.getMarketPrice().subtract(vest.getGrantPrice());
+            BigDecimal salesGain = price.multiply(unitMultiplier);
+            subtotalSalesGain = subtotalSalesGain.add(salesGain);
 
             // update the current vest's units after the SALE deduction
-            if(remainingUnits < 0) {
-                vest.setUnits(0);
+            if(remainingUnits.compareTo(BigDecimal.ZERO) < 0) {
+                vest.setUnits(BigDecimal.ZERO);
             } else {
                 vest.setUnits(remainingUnits);
             }
 
-            previousRemainingUnits = Math.abs(remainingUnits); // update for next iteration
+            previousRemainingUnits = remainingUnits.abs(); // update for next iteration
 
             // check if all units have been sold, if so then we are done
             // otherwise move onto the next VEST to sell the remaining units
-            if(remainingUnits > 0) {
+            if(remainingUnits.compareTo(BigDecimal.ZERO) > 0) {
                 break;
             }
         }

@@ -1,5 +1,6 @@
 package com.sovesting;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class DataHandler {
     private ArrayList<Transaction> transactions; // master list of transactions TODO: consider moving this to Singleton DataProvider
     private TreeMap<String,Employee> employees;
     private Date endDate;
-    private double marketPrice;
+    private BigDecimal marketPrice;
 
     public DataHandler(ArrayList<String> records, String marketLine) {
         this.records = records;
@@ -50,7 +51,7 @@ public class DataHandler {
             e.printStackTrace();
         }
 
-        this.marketPrice = Double.valueOf(tokens[1]);
+        this.marketPrice = new BigDecimal(tokens[1]);
     }
 
     public ArrayList<Transaction> getTransactions() {
@@ -65,7 +66,7 @@ public class DataHandler {
         return this.endDate;
     }
 
-    public double getMarketPrice() {
+    public BigDecimal getMarketPrice() {
         return this.marketPrice;
     }
 

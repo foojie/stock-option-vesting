@@ -1,22 +1,24 @@
 package com.sovesting;
 
+import java.math.BigDecimal;
+
 public class Sale extends Transaction {
 
-    private int units;
-    private double marketPrice; // TODO: use Price wrapper class with BigDecimal
+    private BigDecimal units;
+    private BigDecimal marketPrice; // TODO: use Price wrapper?
 
     // 5 fields
     public Sale(String[] fields) {
         this.init(fields);
-        this.units = Integer.valueOf(fields[3]);
-        this.marketPrice = Double.valueOf(fields[4]); // TODO: parse BigDecimal into Price wrapper
+        this.units = new BigDecimal(fields[3]);
+        this.marketPrice = new BigDecimal(fields[4]); // TODO: parse BigDecimal into Price wrapper?
     }
 
-    public int getUnits() {
+    public BigDecimal getUnits() {
         return this.units;
     }
 
-    public double getMarketPrice() {
+    public BigDecimal getMarketPrice() {
         return this.marketPrice;
     }
 }
