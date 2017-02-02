@@ -1,17 +1,20 @@
 package com.sovesting;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public abstract class Transaction {
+public class Transaction {
 
-    protected String type; // TODO: refactor to Enum
-    protected String employeeId;
-    protected Date date; // could be: vest date, bonus date, sale date
+    private String type;
+    private String employeeId;
+    private Date date; // could be: vest date, bonus date, sale date
+    private BigDecimal units;
+    private BigDecimal price;
+    private BigDecimal multiplier;
 
-    // initialize the 3 common fields
-    protected void init(String[] fields) {
+    public Transaction(String[] fields) {
 
         this.type = fields[0];
         this.employeeId = fields[1];
@@ -21,12 +24,50 @@ public abstract class Transaction {
         } catch(ParseException e) {
             e.printStackTrace();
         }
+
+        if(this.type.equals("VEST") || this.type.equals("SALE")) {
+            this.units = new BigDecimal(fields[3]);
+            this.price = new BigDecimal(fields[4]);
+
+        } else if(this.type.equals("PERF")) {
+            this.multiplier = new BigDecimal(fields[3]);
+        } else {
+            //throw new Exception("Invalid Transaction Type detected");
+        }
+
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public String getEmployeeId() {
+        return this.employeeId;
+    }
+
+    public Date getDate() {
+        return this.date;
+    }
+
+    public BigDecimal getUnits() {
+        return this.units;
+    }
+
+    public void setUnits(BigDecimal units) {
+        this.units = units;
+    }
+
+    public BigDecimal getPrice() {
+        return this.price;
+    }
+
+    public BigDecimal getMultiplier() {
+        return this.multiplier;
     }
 
     @Override
     public String toString() {
-        return "type=" + type + ", employeeId=" + employeeId + ", date=" + date;
+        return "type=" + type + ", employeeId=" + employeeId + ", date=" + date + ", units=" + units + ", price=" + price + ", multiplier=" + multiplier;
     }
 
-    //public abstract void setFields(String[] fields);
 }

@@ -31,15 +31,13 @@ public class GainCalculator {
             BigDecimal totalSales = BigDecimal.ZERO;
             for (Transaction transaction : employeeTransactions) {
 
-                if(transaction.type.equals("PERF")) {
-                    Perf perf = (Perf) transaction;
-                    ArrayList<Vest> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, perf.date);
-                    this.applyPerfMultiplier(perf, this.dataHandler.getEndDate(), vests);
+                if(transaction.getType().equals("PERF")) {
+                    ArrayList<Transaction> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, transaction.getDate());
+                    this.applyPerfMultiplier(transaction, this.dataHandler.getEndDate(), vests);
 
-                } else if(transaction.type.equals("SALE")) {
-                    Sale sale = (Sale) transaction;
-                    ArrayList<Vest> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, sale.date);
-                    BigDecimal salesGain = this.computeSale(sale, this.dataHandler.getEndDate(), vests);
+                } else if(transaction.getType().equals("SALE")) {
+                    ArrayList<Transaction> vests = this.dataHandler.getEmployeeVestsToDate(employeeId, transaction.getDate());
+                    BigDecimal salesGain = this.computeSale(transaction, this.dataHandler.getEndDate(), vests);
                     totalSales = totalSales.add(salesGain);
                     salesCount++;
                 }
@@ -50,9 +48,9 @@ public class GainCalculator {
             // note: some vests might have 0 zero units due to sale deductions
             // TODO: consider refactoring this to a function for testing
             BigDecimal totalGains = BigDecimal.ZERO;
-            for (Vest vest : this.dataHandler.getEmployeeVestsToDate(employeeId, this.dataHandler.getEndDate())) {
+            for (Transaction vest : this.dataHandler.getEmployeeVestsToDate(employeeId, this.dataHandler.getEndDate())) {
                 // formula: gain = (marketPrice - grantPrice) * units
-                BigDecimal price = (this.dataHandler.getMarketPrice().subtract(vest.getGrantPrice()));
+                BigDecimal price = (this.dataHandler.getMarketPrice().subtract(vest.getPrice()));
                 BigDecimal gain = price.multiply(vest.getUnits());
 
                 // only add positive gains to the total, ignore negative gains
@@ -70,14 +68,13 @@ public class GainCalculator {
 
     // apply a single PERF multiplier to a list of Vest references
     // only if the PERF date is On Or Before the End date
-    // TODO: consider moving this method to Perf class or elsewhere
-    public void applyPerfMultiplier(Perf perf, Date endDate, ArrayList<Vest> vests) {
+    public void applyPerfMultiplier(Transaction perf, Date endDate, ArrayList<Transaction> vests) {
 
-        if(perf.date.after(endDate)) {
+        if(perf.getDate().after(endDate)) {
             return;
         }
 
-        for (Vest vest : vests) {
+        for (Transaction vest : vests) {
             // formula: units = VEST units * PERF multiplier;
             BigDecimal units = vest.getUnits().multiply(perf.getMultiplier());
             vest.setUnits(units);
@@ -88,9 +85,9 @@ public class GainCalculator {
     // will handle SALE splits if necessary i.e. the case where a SALE needs to be split across two or more VESTs
     // returns the gain from the given SALE
     // note: return value should be >= 0
-    public BigDecimal computeSale(Sale sale, Date endDate, ArrayList<Vest> vests) {
+    public BigDecimal computeSale(Transaction sale, Date endDate, ArrayList<Transaction> vests) {
 
-        if(sale.date.after(endDate)) {
+        if(sale.getDate().after(endDate)) {
             return BigDecimal.ZERO;
         }
 
@@ -98,7 +95,7 @@ public class GainCalculator {
         BigDecimal remainingUnits = BigDecimal.ZERO;
         BigDecimal previousRemainingUnits = sale.getUnits(); // initialize previous to the sale's units
 
-        for (Vest vest: vests) {
+        for (Transaction vest: vests) {
 
             // does the vest have units to sell
             // formula: vest units <= 0
@@ -114,7 +111,7 @@ public class GainCalculator {
             BigDecimal unitMultiplier = remainingUnits.compareTo(BigDecimal.ZERO) > 0 ? previousRemainingUnits : vest.getUnits();
 
             // formula: sales gain = (sale market price - vest grant price) * unit multiplier
-            BigDecimal price = sale.getMarketPrice().subtract(vest.getGrantPrice());
+            BigDecimal price = sale.getPrice().subtract(vest.getPrice());
             BigDecimal salesGain = price.multiply(unitMultiplier);
 
             // only add positive gains, ignore negative gains

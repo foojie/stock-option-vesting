@@ -35,7 +35,7 @@ public class DataHandler {
             String[] fields = record.split(",");
 
             String type = fields[0];
-            Transaction transaction = TransactionFactory.createTransaction(fields);
+            Transaction transaction = new Transaction(fields);
             this.transactions.add(transaction);
 
             String employeeId = fields[1];
@@ -76,7 +76,7 @@ public class DataHandler {
         ArrayList<Transaction> employeeTransactions = new ArrayList<Transaction>();
 
         for (Transaction transaction : this.transactions) {
-            if(transaction.employeeId.equals(employeeId)) {
+            if(transaction.getEmployeeId().equals(employeeId)) {
                 employeeTransactions.add(transaction);
             }
         }
@@ -85,14 +85,13 @@ public class DataHandler {
     }
 
     // get Employee Vest transactions On Or Before the given date
-    public ArrayList<Vest> getEmployeeVestsToDate(String employeeId, Date toDate) {
+    public ArrayList<Transaction> getEmployeeVestsToDate(String employeeId, Date toDate) {
 
-        ArrayList<Vest> vestsToDate = new ArrayList<Vest>();
+        ArrayList<Transaction> vestsToDate = new ArrayList<Transaction>();
 
         for (Transaction transaction: this.transactions) {
-            if(transaction.type.equals("VEST") && transaction.employeeId.equals(employeeId) && transaction.date.before(toDate) && !transaction.date.after(toDate)) {
-                Vest vest = (Vest) transaction;
-                vestsToDate.add(vest);
+            if(transaction.getType().equals("VEST") && transaction.getEmployeeId().equals(employeeId) && transaction.getDate().before(toDate) && !transaction.getDate().after(toDate)) {
+                vestsToDate.add(transaction);
             }
         }
 

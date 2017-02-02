@@ -6,8 +6,6 @@ public class SOVMain {
 
     public static void main(String[] args) {
 
-        // TODO: create a class to run through the steps
-
         // call the input reader to process raw input
         SOVInputReader reader = new SOVInputReader();
         reader.readStnIn();
