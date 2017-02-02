@@ -85,6 +85,7 @@ public class GainCalculator {
     }
 
     // algorithm to modify VEST units and calculate sales gain
+    // will handle SALE splits if necessary i.e. the case where a SALE needs to be split across two or more VESTs
     // returns the gain from the given SALE
     // note: return value should be >= 0
     public BigDecimal computeSale(Sale sale, Date endDate, ArrayList<Vest> vests) {

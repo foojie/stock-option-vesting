@@ -1,0 +1,31 @@
+version '1.0'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+mainClassName = 'com.sovesting.SOVMain'
+
+sourceCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    baseName = 'sovesting'
+    version =  '1.0'
+    manifest {
+        attributes 'Implementation-Title': 'Stock Option Vesting',
+                'Implementation-Version': version,
+                'Main-Class': 'com.sovesting.SOVMain'
+    }
+}
+
+dependencies {
+    testCompile 'org.testng:testng:6.9.10'
+}
+
+test {
+    useTestNG()
+}
