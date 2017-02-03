@@ -49,6 +49,6 @@ public class Employee {
 
     @Override
     public String toString() {
-        return "Employee{" + this.id + "," + this.getTotalGains() + "," + this.getTotalSales() + '}';
+        return "Employee{" + this.id + "," + this.totalGains + "," + this.totalSales + '}';
     }
 }

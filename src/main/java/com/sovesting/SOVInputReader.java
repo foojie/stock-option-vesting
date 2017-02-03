@@ -36,7 +36,7 @@ public class SOVInputReader {
 
             for (int i = 0; i < n; i++) {
                 line = br.readLine();
-                records.add(line);
+                this.records.add(line);
             }
 
             // read the last line end date and market price
@@ -46,7 +46,5 @@ public class SOVInputReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        //System.out.println(records);
     }
 }

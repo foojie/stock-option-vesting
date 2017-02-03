@@ -21,13 +21,16 @@ public class ExampleDataTest {
         records.add("VEST,003B,20130101,1000,0.50");
         String marketLine = "20140101,1.00";
 
-        DataHandler dataHandler = new DataHandler(records, marketLine);
-        dataHandler.parseRecords();
+        Database database = new Database();
 
-        GainCalculator gainCalculator = new GainCalculator(dataHandler);
+        DataParser dataParser = new DataParser(database, records, marketLine);
+        dataParser.parseRecords();
+        dataParser.parseMarketLine();
+
+        GainCalculator gainCalculator = new GainCalculator(database, dataParser.getEndDate(), dataParser.getMarketPrice());
         gainCalculator.calculateGains();
 
-        TreeMap<String,Employee> employees = dataHandler.getEmployees();
+        TreeMap<String,Employee> employees = database.getEmployees();
 
         Employee e1 = employees.get("001B");
         Assert.assertEquals(e1.getId(),"001B");
@@ -57,13 +60,16 @@ public class ExampleDataTest {
         records.add("PERF,002B,20130102,1.5");
         String marketLine = "20140101,1.00";
 
-        DataHandler dataHandler = new DataHandler(records, marketLine);
-        dataHandler.parseRecords();
+        Database database = new Database();
 
-        GainCalculator gainCalculator = new GainCalculator(dataHandler);
+        DataParser dataParser = new DataParser(database, records, marketLine);
+        dataParser.parseRecords();
+        dataParser.parseMarketLine();
+
+        GainCalculator gainCalculator = new GainCalculator(database, dataParser.getEndDate(), dataParser.getMarketPrice());
         gainCalculator.calculateGains();
 
-        TreeMap<String,Employee> employees = dataHandler.getEmployees();
+        TreeMap<String,Employee> employees = database.getEmployees();
 
         Employee e1 = employees.get("001B");
         Assert.assertEquals(e1.getId(),"001B");
@@ -94,13 +100,16 @@ public class ExampleDataTest {
         records.add("PERF,001B,20130301,1.5");
         String marketLine = "20140101,1.00";
 
-        DataHandler dataHandler = new DataHandler(records, marketLine);
-        dataHandler.parseRecords();
+        Database database = new Database();
 
-        GainCalculator gainCalculator = new GainCalculator(dataHandler);
+        DataParser dataParser = new DataParser(database, records, marketLine);
+        dataParser.parseRecords();
+        dataParser.parseMarketLine();
+
+        GainCalculator gainCalculator = new GainCalculator(database, dataParser.getEndDate(), dataParser.getMarketPrice());
         gainCalculator.calculateGains();
 
-        TreeMap<String,Employee> employees = dataHandler.getEmployees();
+        TreeMap<String,Employee> employees = database.getEmployees();
 
         Employee e1 = employees.get("001B");
         Assert.assertEquals(e1.getId(),"001B");
@@ -119,13 +128,16 @@ public class ExampleDataTest {
         records.add("SALE,Jeff,20130201,150,1.00");
         String marketLine = "20140101,1.00";
 
-        DataHandler dataHandler = new DataHandler(records, marketLine);
-        dataHandler.parseRecords();
+        Database database = new Database();
 
-        GainCalculator gainCalculator = new GainCalculator(dataHandler);
+        DataParser dataParser = new DataParser(database, records, marketLine);
+        dataParser.parseRecords();
+        dataParser.parseMarketLine();
+
+        GainCalculator gainCalculator = new GainCalculator(database, dataParser.getEndDate(), dataParser.getMarketPrice());
         gainCalculator.calculateGains();
 
-        TreeMap<String,Employee> employees = dataHandler.getEmployees();
+        TreeMap<String,Employee> employees = database.getEmployees();
 
         Employee e1 = employees.get("Jeff");
         Assert.assertEquals(e1.getId(),"Jeff");
