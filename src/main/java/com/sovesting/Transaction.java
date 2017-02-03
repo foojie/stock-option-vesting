@@ -7,7 +7,7 @@ import java.util.Date;
 
 public class Transaction {
 
-    private String type;
+    private Type type;
     private String employeeId;
     private Date date; // could be: vest date, bonus date, sale date
     private long units;
@@ -16,20 +16,25 @@ public class Transaction {
 
     public Transaction(String[] fields) {
 
-        this.type = fields[0];
-        this.employeeId = fields[1];
+        String typeStr = fields[0];
 
-        try {
-            this.date = new SimpleDateFormat("yyyyMMdd").parse(fields[2]);
-        } catch(ParseException e) {
-            e.printStackTrace();
+        if(typeStr.equals("VEST")) {
+            this.type = Type.VEST;
+        } else if(typeStr.equals("PERF")) {
+            this.type = Type.PERF;
+        } else if(typeStr.equals("SALE")) {
+            this.type = Type.SALE;
         }
 
-        if(this.type.equals("VEST") || this.type.equals("SALE")) {
+        this.employeeId = fields[1];
+
+        this.date = Transaction.parseDate(fields[2]);
+
+        if(this.type == Type.VEST || this.type == Type.SALE) {
             this.units = new Long(fields[3]);
             this.price = new BigDecimal(fields[4]);
 
-        } else if(this.type.equals("PERF")) {
+        } else if(this.type == Type.PERF) {
             this.multiplier = new BigDecimal(fields[3]);
         } else {
             //throw new Exception("Invalid Transaction Type detected");
@@ -37,7 +42,17 @@ public class Transaction {
 
     }
 
-    public String getType() {
+    public static Date parseDate(String dateStr) {
+        Date date = null;
+        try {
+            date = new SimpleDateFormat("yyyyMMdd").parse(dateStr);
+        } catch(ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
+    }
+
+    public Type getType() {
         return this.type;
     }
 

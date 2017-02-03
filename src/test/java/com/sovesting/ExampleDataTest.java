@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+// Integration Tests
 public class ExampleDataTest {
 
     // data from input01a.def: the very first basic example provided

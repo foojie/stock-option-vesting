@@ -28,7 +28,7 @@ public class GainCalculator {
             String employeeId = entry.getKey();
             Employee employee = entry.getValue();
 
-            ArrayList<Transaction> employeeTransactions = this.database.getTransactionsByEmployeeId(employeeId);
+            ArrayList<Transaction> employeeTransactions = this.database.getSortedTransactionsByEmployeeId(employeeId);
 
             // 1st pass: apply PERF multipliers and SALE deductions to VEST units
             // iterate all employee transactions and process them in order
@@ -36,12 +36,12 @@ public class GainCalculator {
             BigDecimal totalSales = BigDecimal.ZERO;
             for (Transaction transaction : employeeTransactions) {
 
-                if(transaction.getType().equals("PERF")) {
-                    ArrayList<Transaction> vests = this.database.getEmployeeVestsToDate(employeeId, transaction.getDate());
+                if(transaction.getType() == Type.PERF) {
+                    ArrayList<Transaction> vests = this.database.getEmployeeVestsToDate(employeeTransactions, transaction.getDate());
                     this.applyPerfMultiplier(transaction, this.endDate, vests);
 
-                } else if(transaction.getType().equals("SALE")) {
-                    ArrayList<Transaction> vests = this.database.getEmployeeVestsToDate(employeeId, transaction.getDate());
+                } else if(transaction.getType() == Type.SALE) {
+                    ArrayList<Transaction> vests = this.database.getEmployeeVestsToDate(employeeTransactions, transaction.getDate());
                     BigDecimal salesGain = this.computeSale(transaction, this.endDate, vests);
                     totalSales = totalSales.add(salesGain);
                     salesCount++;
@@ -53,7 +53,7 @@ public class GainCalculator {
             // note: some vests might have 0 zero units due to sale deductions
             // TODO: consider refactoring this to a function for testing
             BigDecimal totalGains = BigDecimal.ZERO;
-            for (Transaction vest : this.database.getEmployeeVestsToDate(employeeId, this.endDate)) {
+            for (Transaction vest : this.database.getEmployeeVestsToDate(employeeTransactions, this.endDate)) {
                 // formula: gain = (marketPrice - grantPrice) * units
                 BigDecimal price = (this.marketPrice.subtract(vest.getPrice()));
                 BigDecimal gain = price.multiply(new BigDecimal(vest.getUnitsString()));
