@@ -1,4 +1,5 @@
 # stock-option-vesting
 Stock Option Vesting
 
-Hello World
+Conventions:
+-Always construct BigDecimals from strings to maintain precision

@@ -1,6 +1,7 @@
 package com.sovesting;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class GainCalculator {
             for (Transaction vest : this.dataHandler.getEmployeeVestsToDate(employeeId, this.dataHandler.getEndDate())) {
                 // formula: gain = (marketPrice - grantPrice) * units
                 BigDecimal price = (this.dataHandler.getMarketPrice().subtract(vest.getPrice()));
-                BigDecimal gain = price.multiply(vest.getUnits());
+                BigDecimal gain = price.multiply(new BigDecimal(vest.getUnitsString()));
 
                 // only add positive gains to the total, ignore negative gains
                 if(gain.compareTo(BigDecimal.ZERO) > 0) {
@@ -76,8 +77,9 @@ public class GainCalculator {
 
         for (Transaction vest : vests) {
             // formula: units = VEST units * PERF multiplier;
-            BigDecimal units = vest.getUnits().multiply(perf.getMultiplier());
-            vest.setUnits(units);
+            BigDecimal units = new BigDecimal(vest.getUnitsString()).multiply(perf.getMultiplier());
+            BigDecimal unitsRounded = units.setScale(0, RoundingMode.HALF_UP); // round to the nearest whole unit (we don't retain partial units)
+            vest.setUnits(unitsRounded.longValue());
         }
     }
 
@@ -92,27 +94,27 @@ public class GainCalculator {
         }
 
         BigDecimal subtotalSalesGain = BigDecimal.ZERO;
-        BigDecimal remainingUnits = BigDecimal.ZERO;
-        BigDecimal previousRemainingUnits = sale.getUnits(); // initialize previous to the sale's units
+        long remainingUnits = 0;
+        long previousRemainingUnits = sale.getUnits(); // initialize previous to the sale's units
 
         for (Transaction vest: vests) {
 
             // does the vest have units to sell
-            // formula: vest units <= 0
-            if(vest.getUnits().compareTo(BigDecimal.ZERO) < 0 || vest.getUnits().compareTo(BigDecimal.ZERO) == 0) {
+            if(vest.getUnits() <= 0) {
                 continue; // to next vest
             }
 
             // example: VEST 600 units - SALE 500 units = 100
             // example: VEST 100 units - SALE 150 units = -50
-            remainingUnits = vest.getUnits().subtract(previousRemainingUnits); // may yield positive or negative remaining units
+            remainingUnits = vest.getUnits() - previousRemainingUnits; // may yield positive or negative remaining units
 
             // depending on the sign +/- of the remaining units, use the previous RU or vest's units to calculate the gain
-            BigDecimal unitMultiplier = remainingUnits.compareTo(BigDecimal.ZERO) > 0 ? previousRemainingUnits : vest.getUnits();
+            long unitMultiplier = remainingUnits > 0 ? previousRemainingUnits : vest.getUnits();
+            String unitMultiplierString = Long.toString(unitMultiplier);
 
             // formula: sales gain = (sale market price - vest grant price) * unit multiplier
             BigDecimal price = sale.getPrice().subtract(vest.getPrice());
-            BigDecimal salesGain = price.multiply(unitMultiplier);
+            BigDecimal salesGain = price.multiply(new BigDecimal(unitMultiplierString));
 
             // only add positive gains, ignore negative gains
             if(salesGain.compareTo(BigDecimal.ZERO) > 0) {
@@ -120,17 +122,17 @@ public class GainCalculator {
             }
 
             // update the current vest's units after the SALE deduction
-            if(remainingUnits.compareTo(BigDecimal.ZERO) < 0) {
-                vest.setUnits(BigDecimal.ZERO);
+            if(remainingUnits < 0) {
+                vest.setUnits(0);
             } else {
                 vest.setUnits(remainingUnits);
             }
 
-            previousRemainingUnits = remainingUnits.abs(); // update for next iteration
+            previousRemainingUnits = Math.abs(remainingUnits); // update for next iteration
 
             // check if all units have been sold, if so then we are done
             // otherwise move onto the next VEST to sell the remaining units
-            if(remainingUnits.compareTo(BigDecimal.ZERO) > 0) {
+            if(remainingUnits > 0) {
                 break;
             }
         }

@@ -10,7 +10,7 @@ public class Transaction {
     private String type;
     private String employeeId;
     private Date date; // could be: vest date, bonus date, sale date
-    private BigDecimal units;
+    private long units;
     private BigDecimal price;
     private BigDecimal multiplier;
 
@@ -26,7 +26,7 @@ public class Transaction {
         }
 
         if(this.type.equals("VEST") || this.type.equals("SALE")) {
-            this.units = new BigDecimal(fields[3]);
+            this.units = new Long(fields[3]);
             this.price = new BigDecimal(fields[4]);
 
         } else if(this.type.equals("PERF")) {
@@ -49,11 +49,16 @@ public class Transaction {
         return this.date;
     }
 
-    public BigDecimal getUnits() {
+    public long getUnits() {
         return this.units;
     }
 
-    public void setUnits(BigDecimal units) {
+    // this is useful for constructing BigDecimals to perform calculations
+    public String getUnitsString() {
+        return Long.toString(this.units);
+    }
+
+    public void setUnits(long units) {
         this.units = units;
     }
 
